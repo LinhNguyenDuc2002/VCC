@@ -2,6 +2,7 @@ package com.example.vcc_spring.service;
 
 import com.example.vcc_spring.entity.Student;
 import com.example.vcc_spring.repository.StudentRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.List;
 public class StudentServiceImpl implements StudentService {
     private final StudentRepository studentRepository = StudentRepository.getInstance();
 
+    @Cacheable("student") //The result will be saved in cache under 'student'
     @Override
     public List<Student> getAll() {
         return studentRepository.findAll();
@@ -52,6 +54,7 @@ public class StudentServiceImpl implements StudentService {
         studentRepository.delete(id);
     }
 
+    @Cacheable("student")
     @Override
     public List<Student> findByName(String name) {
         return studentRepository.findByName(name);
