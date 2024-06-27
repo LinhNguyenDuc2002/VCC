@@ -1,11 +1,9 @@
 package com.example.vcc_task4.service;
 
-import com.example.vcc_task4.config.ApplicationConfig;
+import com.example.vcc_task4.config.DBCP2Source;
 import com.example.vcc_task4.entity.User;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -20,20 +18,17 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
     private Logger logger = LogManager.getLogger(UserServiceImpl.class);
 
-    @Autowired
-    private Connection connection;
-
     @Override
     public List<User> getAll() {
         List<User> users = new ArrayList<>();
 
-        try {
+        try(Connection connection = DBCP2Source.getConnection()) {
             // create statement
             Statement statement = connection.createStatement();
 
             // get data from table 'user'
             ResultSet rs = statement.executeQuery("select * from user");
-
+            Thread.sleep(2000);
             // show data
             while (rs.next()) {
                 users.add(
@@ -67,7 +62,7 @@ public class UserServiceImpl implements UserService {
             throw new Exception("Invalid user");
         }
 
-        try {
+        try(Connection connection = DBCP2Source.getConnection()) {
             // create statement
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, user.getId());
@@ -98,7 +93,7 @@ public class UserServiceImpl implements UserService {
             throw new Exception("User is not existed!");
         }
 
-        try {
+        try(Connection connection = DBCP2Source.getConnection()) {
             // create statement
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
@@ -129,7 +124,7 @@ public class UserServiceImpl implements UserService {
             throw new Exception("Invalid user");
         }
 
-        try {
+        try(Connection connection = DBCP2Source.getConnection()) {
             // create statement
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, user.getName());
@@ -156,12 +151,13 @@ public class UserServiceImpl implements UserService {
         String sql = "SELECT * FROM user ORDER BY name ASC";
         List<User> users = new ArrayList<>();
 
-        try {
+        try(Connection connection = DBCP2Source.getConnection()) {
             // create statement
             Statement statement = connection.createStatement();
 
             // get data from table 'user'
             ResultSet rs = statement.executeQuery(sql);
+            Thread.sleep(2000);
 
             // show data
             while (rs.next()) {
@@ -187,11 +183,12 @@ public class UserServiceImpl implements UserService {
         String searchTerm = "%" + name + "%";
         List<User> users = new ArrayList<>();
 
-        try {
+        try(Connection connection = DBCP2Source.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, searchTerm);
 
             ResultSet rs = preparedStatement.executeQuery();
+            Thread.sleep(2000);
 
             // show data
             while (rs.next()) {
@@ -216,7 +213,7 @@ public class UserServiceImpl implements UserService {
         String sql = "SELECT * FROM user WHERE id = ?";
         List<User> users = new ArrayList<>();
 
-        try {
+        try(Connection connection = DBCP2Source.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
 
@@ -246,7 +243,7 @@ public class UserServiceImpl implements UserService {
         String searchTerm = "%" + address + "%";
         List<User> users = new ArrayList<>();
 
-        try {
+        try(Connection connection = DBCP2Source.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, searchTerm);
 
@@ -272,7 +269,8 @@ public class UserServiceImpl implements UserService {
 
     private boolean checkExistUser(Integer id) {
         String sql = "SELECT 1 FROM user WHERE id = ? LIMIT 1";
-        try {
+
+        try(Connection connection = DBCP2Source.getConnection()) {
             // create statement
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
