@@ -22,7 +22,7 @@ public class UserServiceImpl implements UserService {
     public List<User> getAll() {
         List<User> users = new ArrayList<>();
 
-        try(Connection connection = DBCP2Source.getConnection()) {
+        try(Connection connection = DBCP2Source.getConnection()) { // auto close connection without using finally block to close
             // create statement
             Statement statement = connection.createStatement();
 

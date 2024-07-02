@@ -1,11 +1,8 @@
 package com.example.vcc_task4.config;
 
-import com.example.vcc_task4.service.UserServiceImpl;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -24,9 +21,9 @@ public class DBCP2Source {
         dataSource.setUsername(DBConfiguration.USER_NAME);
         dataSource.setPassword(DBConfiguration.PASSWORD);
 
-        dataSource.setMinIdle(1); //duy trì tối thiểu
-        dataSource.setMaxIdle(2); //duy trì tối đa
-        dataSource.setMaxTotal(2); //tối đa có thể có
+        dataSource.setMinIdle(DBConfiguration.DB_MIN_CONNECTIONS); //duy trì tối thiểu
+        dataSource.setMaxIdle(DBConfiguration.DB_MAX_CONNECTIONS); //duy trì tối đa
+        dataSource.setMaxTotal(DBConfiguration.DB_MAX_CONNECTIONS); //tối đa có thể có
     }
 
     public static Connection getConnection() throws SQLException {
