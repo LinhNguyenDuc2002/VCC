@@ -8,10 +8,10 @@ public class VccTask5Application {
 
     public static void main(String[] args) {
         SpringApplication.run(VccTask5Application.class, args);
-        RandomDataTask6.generateData(100, "user");
+        RandomDataTask6.generateData(5000000, "user");
         RandomDataTask6.startWith("h", "user");
         RandomDataTask6.containWith("h", "user");
-        RandomDataTask6.withName("upze", "user");
+        RandomDataTask6.withName("PICoUWC", "user");
     }
 
 }
