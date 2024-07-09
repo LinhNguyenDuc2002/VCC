@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>vcc_task7</artifactId>
+    <artifactId>vcc_task5</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>vcc_task4</name>
     <description>vcc_task4</description>
@@ -44,6 +44,11 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-dbcp2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
         </dependency>
 
         <dependency>

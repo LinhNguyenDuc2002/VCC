@@ -1,8 +1,12 @@
 package com.example.vcc_task7.controller;
 
 import com.example.vcc_task7.entity.User;
+import com.example.vcc_task7.payload.CommonResponse;
 import com.example.vcc_task7.service.UserService;
+import com.example.vcc_task7.util.ResponseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,55 +26,97 @@ public class UserController {
     private UserService userService;
 
     @PostMapping
-    public User add(@RequestBody User user) throws Exception {
-        return userService.add(user);
+    public ResponseEntity<CommonResponse<User>> add(@RequestBody User user) throws Exception {
+        return ResponseUtil.wrapResponse(
+                userService.add(user),
+                "Added user successfully",
+                true,
+                HttpStatus.OK.value());
     }
 
     @GetMapping
-    public List<User> getAll() {
-        return userService.getAll();
+    public ResponseEntity<CommonResponse<List<User>>> getAll() {
+        return ResponseUtil.wrapResponse(
+                userService.getAll(),
+                "Got all user successfully",
+                true,
+                HttpStatus.OK.value());
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Integer id) throws Exception {
+    public ResponseEntity<CommonResponse<Void>> delete(@PathVariable Integer id) throws Exception {
         userService.delete(id);
+        return ResponseUtil.wrapResponse(
+                null,
+                "Deleted user successfully",
+                true,
+                HttpStatus.OK.value());
     }
 
     @PutMapping("/{id}")
-    public User update(@PathVariable Integer id, @RequestBody User user) throws Exception {
-        return userService.update(id, user);
+    public ResponseEntity<CommonResponse<User>> update(@PathVariable Integer id, @RequestBody User user) throws Exception {
+        return ResponseUtil.wrapResponse(
+                userService.update(id, user),
+                "Updated user successfully",
+                true,
+                HttpStatus.OK.value());
     }
 
     @GetMapping("/sort")
-    public List<User> sortByName() {
-        return userService.sortByName();
+    public ResponseEntity<CommonResponse<List<User>>> sortByName() {
+        return ResponseUtil.wrapResponse(
+                userService.sortByName(),
+                "Sorted user by name successfully",
+                true,
+                HttpStatus.OK.value());
     }
 
     @GetMapping("/searchByName")
-    public List<User> findByName(@RequestParam("name") String name) {
-        return userService.findByName(name);
+    public ResponseEntity<CommonResponse<List<User>>> findByName(@RequestParam("name") String name) {
+        return ResponseUtil.wrapResponse(
+                userService.findByName(name),
+                "Found user by name successfully",
+                true,
+                HttpStatus.OK.value());
     }
 
     @GetMapping("/searchById")
-    public List<User> findById(@RequestParam("id") Integer id) {
-        return userService.findById(id);
+    public ResponseEntity<CommonResponse<List<User>>> findById(@RequestParam("id") Integer id) {
+        return ResponseUtil.wrapResponse(
+                userService.findById(id),
+                "Found user by id successfully",
+                true,
+                HttpStatus.OK.value());
     }
 
     @GetMapping("/searchByAddress")
-    public List<User> findByAddress(@RequestParam("address") String address) {
-        return userService.findByAddress(address);
+    public ResponseEntity<CommonResponse<List<User>>> findByAddress(@RequestParam("address") String address) {
+        return ResponseUtil.wrapResponse(
+                userService.findByAddress(address),
+                "Found user by address successfully",
+                true,
+                HttpStatus.OK.value());
     }
 
     @GetMapping("/money/{id}")
-    public User addMoney(@PathVariable Integer id, @RequestParam("money") Long money) throws Exception {
-        return userService.addMoney(id, money);
+    public ResponseEntity<CommonResponse<User>> addMoney(@PathVariable Integer id, @RequestParam("money") Long money) throws Exception {
+        return ResponseUtil.wrapResponse(
+                userService.addMoney(id, money),
+                "Added money for user successfully",
+                true,
+                HttpStatus.OK.value());
     }
 
     @GetMapping("/money")
-    public void sendMoney(
+    public ResponseEntity<CommonResponse<Void>> sendMoney(
             @RequestParam("from") Integer userA,
             @RequestParam("to") Integer userB,
             @RequestParam("money") Long money) throws Exception {
         userService.sendMoney(userA, userB, money);
+        return ResponseUtil.wrapResponse(
+                null,
+                "Sent money successfully",
+                true,
+                HttpStatus.OK.value());
     }
 }

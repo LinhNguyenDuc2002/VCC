@@ -1,4 +1,4 @@
-//package com.example.vcc_task7.config;
+//package com.example.vcc_task4.config;
 //
 //import org.apache.logging.log4j.Level;
 //import org.apache.logging.log4j.LogManager;

@@ -7,7 +7,7 @@ public class DBConfiguration {
 
     public static final String DB_DRIVER = "com.mysql.cj.jdbc.Driver";
 
-    public static final int DB_MIN_CONNECTIONS = 5;
+    public static final int DB_MIN_CONNECTIONS = 8;
 
     public static final int DB_MAX_CONNECTIONS = 10;
 

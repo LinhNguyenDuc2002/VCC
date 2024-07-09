@@ -2,8 +2,11 @@ package com.example.vcc_task7.service;
 
 import com.example.vcc_task7.config.DBCP2Source;
 import com.example.vcc_task7.entity.User;
+import com.example.vcc_task7.exception.CommonException;
+import com.example.vcc_task7.util.StatusCode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -20,7 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class UserServiceImpl implements UserService {
     private Logger logger = LogManager.getLogger(UserServiceImpl.class);
 
-    private final Lock lock = new ReentrantLock();
+    private Lock lock = new ReentrantLock();
 
     @Override
     public List<User> getAll() {
@@ -46,6 +49,7 @@ public class UserServiceImpl implements UserService {
 
         } catch (Exception ex) {
             ex.printStackTrace();
+            throw new CommonException(true, "Server error", StatusCode.ERROR);
         }
         return users;
     }
@@ -56,14 +60,14 @@ public class UserServiceImpl implements UserService {
 
         if (checkExistUser(user.getId())) {
             logger.info("User {} existed!", user.getId());
-            throw new Exception("User existed!");
+            throw new CommonException(true, "User existed!", StatusCode.OBJECT_EXISTED);
         }
 
         if (StringUtils.isEmpty(user.getName()) ||
                 StringUtils.isEmpty(user.getAddress()) ||
                 (user.getAge() < 1 || user.getAge() > 100)) {
             logger.error("Invalid user");
-            throw new Exception("Invalid user");
+            throw new CommonException(true, user, "Invalid data!", StatusCode.INVALID_DATA);
         }
 
         try (Connection connection = DBCP2Source.getConnection()) {
@@ -83,9 +87,8 @@ public class UserServiceImpl implements UserService {
         } catch (Exception ex) {
             logger.error("Add user failed!");
             ex.printStackTrace();
+            throw new CommonException(true, "Server error", StatusCode.ERROR);
         }
-
-        return null;
     }
 
     @Override
@@ -94,7 +97,7 @@ public class UserServiceImpl implements UserService {
 
         if (!checkExistUser(id)) {
             logger.info("User {} isn't existed!", id);
-            throw new Exception("User is not existed!");
+            throw new CommonException(true, "User is not existed!", HttpStatus.NOT_FOUND.value());
         }
 
         try (Connection connection = DBCP2Source.getConnection()) {
@@ -109,6 +112,7 @@ public class UserServiceImpl implements UserService {
         } catch (Exception ex) {
             logger.error("Add user failed!");
             ex.printStackTrace();
+            throw new CommonException(true, "Server error", StatusCode.ERROR);
         }
     }
 
@@ -118,14 +122,14 @@ public class UserServiceImpl implements UserService {
 
         if (!checkExistUser(id)) {
             logger.info("User {} isn't existed!", id);
-            throw new Exception("User is not existed!");
+            throw new CommonException(true, "User is not existed!", HttpStatus.NOT_FOUND.value());
         }
 
         if (StringUtils.isEmpty(user.getName()) ||
                 StringUtils.isEmpty(user.getAddress()) ||
                 (user.getAge() < 1 || user.getAge() > 100)) {
             logger.error("Invalid user");
-            throw new Exception("Invalid user");
+            throw new CommonException(true, user, "Invalid data!", StatusCode.INVALID_DATA);
         }
 
         try (Connection connection = DBCP2Source.getConnection()) {
@@ -137,14 +141,16 @@ public class UserServiceImpl implements UserService {
             preparedStatement.setInt(4, id);
 
             preparedStatement.executeUpdate();
+
+            // close connection
+            logger.info("Delete user successfully!");
             user.setId(id);
             return user;
         } catch (Exception ex) {
             logger.error("Add user failed!");
             ex.printStackTrace();
+            throw new CommonException(true, "Server error", StatusCode.ERROR);
         }
-
-        return user;
     }
 
     @Override
@@ -173,9 +179,8 @@ public class UserServiceImpl implements UserService {
             return users;
         } catch (Exception ex) {
             ex.printStackTrace();
+            throw new CommonException(true, "Server error", StatusCode.ERROR);
         }
-
-        return users;
     }
 
     @Override
@@ -204,9 +209,8 @@ public class UserServiceImpl implements UserService {
             return users;
         } catch (Exception ex) {
             ex.printStackTrace();
+            throw new CommonException(true, "Server error", StatusCode.ERROR);
         }
-
-        return users;
     }
 
     @Override
@@ -233,9 +237,8 @@ public class UserServiceImpl implements UserService {
             return users;
         } catch (Exception ex) {
             ex.printStackTrace();
+            throw new CommonException(true, "Server error", StatusCode.ERROR);
         }
-
-        return users;
     }
 
     @Override
@@ -263,9 +266,8 @@ public class UserServiceImpl implements UserService {
             return users;
         } catch (Exception ex) {
             ex.printStackTrace();
+            throw new CommonException(true, "Server error", StatusCode.ERROR);
         }
-
-        return users;
     }
 
     @Override
@@ -314,8 +316,7 @@ public class UserServiceImpl implements UserService {
                 logger.error("Add money for user failed!");
                 ex.printStackTrace();
             }
-        }
-        finally {
+        } finally {
             lock.unlock();
         }
         return null;
@@ -385,6 +386,7 @@ public class UserServiceImpl implements UserService {
 
         } catch (Exception ex) {
             ex.printStackTrace();
+            throw new CommonException(true, "Server error", StatusCode.ERROR);
         }
         return false;
     }
