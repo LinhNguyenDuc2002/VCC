@@ -270,37 +270,54 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User addMoney(Integer id, Long money) throws Exception {
-        String updateSql = "UPDATE user SET money = money + ? WHERE id = ?";
-        String sql = "SELECT * FROM user WHERE id = ?";
+        lock.lock();
+        try {
+            String moneySql = "SELECT money FROM user WHERE id = ?";
+            String updateSql = "UPDATE user SET money = ? WHERE id = ?";
+            String sql = "SELECT * FROM user WHERE id = ?";
 
-        if (!checkExistUser(id)) {
-            logger.info("User {} isn't existed!", id);
-            throw new Exception("User is not existed!");
-        }
-
-        if (money < 0) {
-            logger.error("Invalid money");
-            throw new Exception("Invalid money");
-        }
-
-        try (Connection connection = DBCP2Source.getConnection()) {
-            // update
-            PreparedStatement preparedStatement = connection.prepareStatement(updateSql);
-            preparedStatement.setLong(1, money);
-            preparedStatement.setInt(2, id);
-            preparedStatement.executeUpdate();
-
-            preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setInt(1, id);
-            ResultSet rs = preparedStatement.executeQuery();
-            if (rs.next()) {
-                return new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getInt(4), rs.getLong(5));
+            if (!checkExistUser(id)) {
+                logger.info("User {} isn't existed!", id);
+                throw new Exception("User is not existed!");
             }
-        } catch (Exception ex) {
-            logger.error("Add user failed!");
-            ex.printStackTrace();
-        }
 
+            if (money < 0) {
+                logger.error("Invalid money");
+                throw new Exception("Invalid money");
+            }
+
+            try (Connection connection = DBCP2Source.getConnection()) {
+                Long total = 0L;
+
+                // get current money
+                PreparedStatement preparedStatement = connection.prepareStatement(moneySql);
+                preparedStatement.setInt(1, id);
+                ResultSet rs = preparedStatement.executeQuery();
+                if (rs.next()) {
+                    total = rs.getLong(1);
+                }
+
+                // update money after adding
+                preparedStatement = connection.prepareStatement(updateSql);
+                preparedStatement.setLong(1, total + money);
+                preparedStatement.setInt(2, id);
+                preparedStatement.executeUpdate();
+
+                // get user after updating
+                preparedStatement = connection.prepareStatement(sql);
+                preparedStatement.setInt(1, id);
+                rs = preparedStatement.executeQuery();
+                if (rs.next()) {
+                    return new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getInt(4), rs.getLong(5));
+                }
+            } catch (Exception ex) {
+                logger.error("Add money for user failed!");
+                ex.printStackTrace();
+            }
+        }
+        finally {
+            lock.unlock();
+        }
         return null;
     }
 

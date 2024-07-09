@@ -8,7 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Random;
 
-public class MyThread extends Thread{
+public class MyThread extends Thread {
     private int start;
 
     private int number;
