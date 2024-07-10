@@ -16,6 +16,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -24,6 +26,8 @@ public class UserServiceImpl implements UserService {
     private Logger logger = LogManager.getLogger(UserServiceImpl.class);
 
     private Lock lock = new ReentrantLock();
+
+    private ConcurrentHashMap<String, Lock> transferLocks = new ConcurrentHashMap<>();
 
     @Override
     public List<User> getAll() {
@@ -324,49 +328,62 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void sendMoney(Integer userA, Integer userB, Long money) throws Exception {
-        lock.lock();
+        String id = UUID.randomUUID().toString();
+        Lock a = transferLocks.computeIfAbsent(id, k ->  new ReentrantLock());
+
+        a.lock();
         try {
-            String checkSql = "SELECT money FROM user WHERE id = ?";
-            String sql1 = "UPDATE user SET money = money - ? WHERE id = ?";
-            String sql2 = "UPDATE user SET money = money + ? WHERE id = ?";
+            handleSending(userA, userB, money);
 
-            if (!checkExistUser(userA) || !checkExistUser(userB)) {
-                logger.info("User isn't existed!");
-                throw new Exception("User is not existed!");
-            }
+            transferLocks.remove(id);
+        }
+        catch (Exception e) {
+           throw new Exception();
+        }
+        finally {
+            a.unlock();
+        }
+    }
 
-            if (money < 0) {
-                logger.error("Invalid money");
-                throw new Exception("Invalid money");
-            }
+    private void handleSending(Integer userA, Integer userB, Long money) throws Exception {
+        String checkSql = "SELECT money FROM user WHERE id = ?";
+        String sql1 = "UPDATE user SET money = money - ? WHERE id = ?";
+        String sql2 = "UPDATE user SET money = money + ? WHERE id = ?";
 
-            try (Connection connection = DBCP2Source.getConnection()) {
-                // create statement
-                PreparedStatement preparedStatement = connection.prepareStatement(checkSql);
-                preparedStatement.setInt(1, userA);
+        if (!checkExistUser(userA) || !checkExistUser(userB)) {
+            logger.info("User isn't existed!");
+            throw new Exception("User is not existed!");
+        }
 
-                ResultSet rs = preparedStatement.executeQuery();
-                if (rs.next()) {
-                    if (rs.getLong(1) < money) {
-                        throw new Exception("You don't enough money!");
-                    }
+        if (money < 0) {
+            logger.error("Invalid money");
+            throw new Exception("Invalid money");
+        }
+
+        try (Connection connection = DBCP2Source.getConnection()) {
+            // create statement
+            PreparedStatement preparedStatement = connection.prepareStatement(checkSql);
+            preparedStatement.setInt(1, userA);
+
+            ResultSet rs = preparedStatement.executeQuery();
+            if (rs.next()) {
+                if (rs.getLong(1) < money) {
+                    throw new Exception("You don't enough money!");
                 }
-
-                preparedStatement = connection.prepareStatement(sql1);
-                preparedStatement.setLong(1, money);
-                preparedStatement.setInt(2, userA);
-                preparedStatement.executeUpdate();
-
-                preparedStatement = connection.prepareStatement(sql2);
-                preparedStatement.setLong(1, money);
-                preparedStatement.setInt(2, userB);
-                preparedStatement.executeUpdate();
-            } catch (Exception ex) {
-                logger.error("Add user failed!");
-                ex.printStackTrace();
             }
-        } finally {
-            lock.unlock();
+
+            preparedStatement = connection.prepareStatement(sql1);
+            preparedStatement.setLong(1, money);
+            preparedStatement.setInt(2, userA);
+            preparedStatement.executeUpdate();
+
+            preparedStatement = connection.prepareStatement(sql2);
+            preparedStatement.setLong(1, money);
+            preparedStatement.setInt(2, userB);
+            preparedStatement.executeUpdate();
+        } catch (Exception ex) {
+            logger.error("Add user failed!");
+            ex.printStackTrace();
         }
     }
 
