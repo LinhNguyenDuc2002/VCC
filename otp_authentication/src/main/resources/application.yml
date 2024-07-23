@@ -14,9 +14,9 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
 
   mail:
-    from-address: linhnd.b20at109@stu.ptit.edu.vn
-    username: linhnd.b20at109@stu.ptit.edu.vn
-    password: Sero2002@
+    from-address:
+    username:
+    password:
     host: smtp-mail.outlook.com
     port: 587
     properties:
