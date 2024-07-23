@@ -7,9 +7,9 @@ public class DBConfiguration {
 
     public static final String DB_DRIVER = "com.mysql.cj.jdbc.Driver";
 
-    public static final int DB_MIN_CONNECTIONS = 8;
+    public static final int DB_MIN_CONNECTIONS = 10;
 
-    public static final int DB_MAX_CONNECTIONS = 10;
+    public static final int DB_MAX_CONNECTIONS = 15;
 
     public static final String DB_URL = "jdbc:mysql://localhost:3306/vcc_user";
 }

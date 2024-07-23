@@ -27,8 +27,6 @@ public class UserServiceImpl implements UserService {
 
     private Lock lock = new ReentrantLock();
 
-    private ConcurrentHashMap<String, Lock> transferLocks = new ConcurrentHashMap<>();
-
     @Override
     public List<User> getAll() {
         List<User> users = new ArrayList<>();
@@ -279,8 +277,7 @@ public class UserServiceImpl implements UserService {
         lock.lock();
         try {
             String moneySql = "SELECT money FROM user WHERE id = ?";
-            String updateSql = "UPDATE user SET money = ? WHERE id = ?";
-            String sql = "SELECT * FROM user WHERE id = ?";
+            String updateSql = "UPDATE user SET money = ? WHERE id = ? FOR UPDATE";
 
             if (!checkExistUser(id)) {
                 logger.info("User {} isn't existed!", id);
@@ -308,14 +305,6 @@ public class UserServiceImpl implements UserService {
                 preparedStatement.setLong(1, total + money);
                 preparedStatement.setInt(2, id);
                 preparedStatement.executeUpdate();
-
-                // get user after updating
-                preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.setInt(1, id);
-                rs = preparedStatement.executeQuery();
-                if (rs.next()) {
-                    return new User(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getInt(4), rs.getLong(5));
-                }
             } catch (Exception ex) {
                 logger.error("Add money for user failed!");
                 ex.printStackTrace();
@@ -328,25 +317,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void sendMoney(Integer userA, Integer userB, Long money) throws Exception {
-        String id = UUID.randomUUID().toString();
-        Lock a = transferLocks.computeIfAbsent(id, k ->  new ReentrantLock());
-
-        a.lock();
-        try {
-            handleSending(userA, userB, money);
-
-            transferLocks.remove(id);
-        }
-        catch (Exception e) {
-           throw new Exception();
-        }
-        finally {
-            a.unlock();
-        }
-    }
-
-    private void handleSending(Integer userA, Integer userB, Long money) throws Exception {
-        String checkSql = "SELECT money FROM user WHERE id = ?";
+        String checkSql = "SELECT money FROM user WHERE id = ? FOR UPDATE";
         String sql1 = "UPDATE user SET money = money - ? WHERE id = ?";
         String sql2 = "UPDATE user SET money = money + ? WHERE id = ?";
 
@@ -361,10 +332,10 @@ public class UserServiceImpl implements UserService {
         }
 
         try (Connection connection = DBCP2Source.getConnection()) {
-            // create statement
+            connection.setAutoCommit(false);
+
             PreparedStatement preparedStatement = connection.prepareStatement(checkSql);
             preparedStatement.setInt(1, userA);
-
             ResultSet rs = preparedStatement.executeQuery();
             if (rs.next()) {
                 if (rs.getLong(1) < money) {
@@ -381,6 +352,8 @@ public class UserServiceImpl implements UserService {
             preparedStatement.setLong(1, money);
             preparedStatement.setInt(2, userB);
             preparedStatement.executeUpdate();
+
+            connection.commit();
         } catch (Exception ex) {
             logger.error("Add user failed!");
             ex.printStackTrace();
