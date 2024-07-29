@@ -1,6 +1,6 @@
 spring:
   application:
-    name: OAuth2
+    name: ldap
 
   datasource:
     url: jdbc:mysql://localhost:3306/employee_system
@@ -13,10 +13,9 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
 
-  security:
-    oauth2:
-      client:
-        registration:
-          facebook:
-            clientId: 1530299457838583
-            clientSecret: 1dae2361a663def64fb0cafc287f55a5
+  # Three application properties
+  ldap:
+    embedded:
+      port: 8090
+      ldif: classpath:user-data.ldif
+      base-dn: dc=springframework,dc=org
