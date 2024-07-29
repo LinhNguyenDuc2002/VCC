@@ -18,5 +18,5 @@ spring:
       client:
         registration:
           facebook:
-            clientId: 1530299457838583
-            clientSecret: 1dae2361a663def64fb0cafc287f55a5
+            clientId:
+            clientSecret:
