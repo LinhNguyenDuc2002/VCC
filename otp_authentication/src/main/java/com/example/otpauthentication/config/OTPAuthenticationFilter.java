@@ -1,8 +1,11 @@
 package com.example.otpauthentication.config;
 
 import com.example.otpauthentication.cache.CacheMemory;
+import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.cache.CacheManager;
@@ -17,6 +20,7 @@ import java.io.IOException;
 
 public class OTPAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
     private final CacheManager cacheManager;
+
     protected OTPAuthenticationFilter(CacheManager cacheManager) {
         super(new AntPathRequestMatcher("/verify", "POST"));
         this.cacheManager = cacheManager;
@@ -24,18 +28,20 @@ public class OTPAuthenticationFilter extends AbstractAuthenticationProcessingFil
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication != null) {
+            return authentication;
+        }
+
         String otp = request.getParameter("otp");
         String key = request.getParameter("key");
-
         CacheMemory cacheMemory = cacheManager.getCache("user").get(key, CacheMemory.class);
-        Authentication authentication = getAuthenticationManager().authenticate(
-                new UsernamePasswordAuthenticationToken(cacheMemory.getUsername(), cacheMemory.getPassword()));
 
-        if(authentication.isAuthenticated()) {
-            if(getAuthenticationManager().authenticate(new OTPAuthentication(key, otp)) != null) {
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                return authentication;
-            }
+        if(getAuthenticationManager().authenticate(new OTPAuthentication(key, otp)) != null) {
+            authentication = getAuthenticationManager().authenticate(
+                    new UsernamePasswordAuthenticationToken(cacheMemory.getUsername(), cacheMemory.getPassword()));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            return authentication;
         }
 
         return null;

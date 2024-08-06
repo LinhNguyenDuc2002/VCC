@@ -24,7 +24,7 @@ public class User implements UserDetails {
         this.departmentId = departmentId;
         this.authorities = authorities
                 .stream()
-                .map(role -> new SimpleGrantedAuthority(role.getRoleName()))
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toList());;
     }
 

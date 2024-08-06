@@ -9,6 +9,6 @@ import java.util.List;
 
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Integer> {
-    @Query("SELECT r FROM Role r WHERE r.roleName IN :roleNames")
+    @Query("SELECT r FROM Role r WHERE r.name IN :roleNames")
     List<Role> findAllByRoleName(List<String> roleNames);
 }

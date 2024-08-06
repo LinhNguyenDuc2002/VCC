@@ -3,7 +3,7 @@ spring:
     name: OTPAuthentication
 
   datasource:
-    url: jdbc:mysql://localhost:3306/employee_system
+    url: jdbc:mysql://localhost:3306/vcc_user
     username: root
     password:
 
